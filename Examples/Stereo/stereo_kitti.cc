@@ -82,9 +82,9 @@ int main(int argc, char **argv)
 #else
         std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
 #endif
-
+        cv::Mat dummy;
         // Pass the images to the SLAM system
-        SLAM.TrackStereo(imLeft,imRight,tframe);
+        SLAM.TrackStereo(imLeft,imRight,tframe, dummy);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();

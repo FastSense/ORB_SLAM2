@@ -40,6 +40,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
 
+    cout << endl << "UROCK" << endl << endl;
+
     cout << "Input sensor was set to: ";
 
     if(mSensor==MONOCULAR)
@@ -113,7 +115,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
 }
 
-cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
+cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
 {
 
     //cerr << "ORB SLAM: TrackStereo started 55\n";
@@ -158,7 +160,7 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
     }
     }
 
-    cv::Mat Tcw = mpTracker->GrabImageStereo(imLeft,imRight,timestamp);
+    cv::Mat Tcw = mpTracker->GrabImageStereo(imLeft,imRight,timestamp, mInitialPoseEstimation_);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
@@ -167,7 +169,7 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
     return Tcw;
 }
 
-cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
+cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
 {
     if(mSensor!=RGBD)
     {
@@ -209,7 +211,7 @@ cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const doub
     }
     }
 
-    cv::Mat Tcw = mpTracker->GrabImageRGBD(im,depthmap,timestamp);
+    cv::Mat Tcw = mpTracker->GrabImageRGBD(im,depthmap,timestamp, mInitialPoseEstimation_);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;

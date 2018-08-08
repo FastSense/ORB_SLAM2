@@ -232,7 +232,7 @@ void Tracking::SetViewer(Viewer *pViewer)
 }
 
 
-cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp)
+cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
 {
     mImGray = imRectLeft;
     cv::Mat imGrayRight = imRectRight;
@@ -267,12 +267,13 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
     mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
+    mInitialPoseEstimation_ = mInitialPoseEstimation;
 
     return mCurrentFrame.mTcw.clone();
 }
 
 
-cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp)
+cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
 {
     mImGray = imRGB;
     cv::Mat imDepth = imD;
@@ -298,6 +299,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
+    mInitialPoseEstimation_ = mInitialPoseEstimation;
 
     return mCurrentFrame.mTcw.clone();
 }
@@ -973,6 +975,8 @@ bool Tracking::TrackWithMotionModel()
 
     //std::cout<<R<<std::endl;
 
+
+    mInitialPoseEstimation = mVelocity*mLastFrame.mTcw;
     mCurrentFrame.SetPose(mVelocity*mLastFrame.mTcw);
 
 
