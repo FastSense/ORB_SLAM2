@@ -77,14 +77,27 @@ cv::Mat FrameDrawer::DrawFrame()
     //Draw
     if(state==Tracking::NOT_INITIALIZED) //INITIALIZING
     {
-        for(unsigned int i=0; i<vMatches.size(); i++)
+//        for(unsigned int i=0; i<vMatches.size(); i++)
+//        {
+//            if(vMatches[i]>=0)
+//            {
+//                cv::line(im,vIniKeys[i].pt,vCurrentKeys[vMatches[i]].pt,
+//                        cv::Scalar(0,255,0));
+//            }
+//        }
+        const float r = 5;
+        const int n = vCurrentKeys.size();
+        for(int i=0;i<n;i++)
         {
-            if(vMatches[i]>=0)
-            {
-                cv::line(im,vIniKeys[i].pt,vCurrentKeys[vMatches[i]].pt,
-                        cv::Scalar(0,255,0));
-            }
-        }        
+            cv::Point2f pt1,pt2;
+            pt1.x=vCurrentKeys[i].pt.x-r;
+            pt1.y=vCurrentKeys[i].pt.y-r;
+            pt2.x=vCurrentKeys[i].pt.x+r;
+            pt2.y=vCurrentKeys[i].pt.y+r;
+
+            cv::rectangle(im,pt1,pt2,cv::Scalar(255,0,0));
+            cv::circle(im,vCurrentKeys[i].pt,2,cv::Scalar(255,0,0),-1);
+        }
     }
     else if(state==Tracking::OK) //TRACKING
     {
@@ -92,6 +105,17 @@ cv::Mat FrameDrawer::DrawFrame()
         mnTrackedVO=0;
         const float r = 5;
         const int n = vCurrentKeys.size();
+        for(int i=0;i<n;i++)
+        {
+            cv::Point2f pt1,pt2;
+            pt1.x=vCurrentKeys[i].pt.x-r;
+            pt1.y=vCurrentKeys[i].pt.y-r;
+            pt2.x=vCurrentKeys[i].pt.x+r;
+            pt2.y=vCurrentKeys[i].pt.y+r;
+
+            cv::rectangle(im,pt1,pt2,cv::Scalar(0,128,0));
+            cv::circle(im,vCurrentKeys[i].pt,2,cv::Scalar(0,128,0),-1);
+        }
         for(int i=0;i<n;i++)
         {
             if(vbVO[i] || vbMap[i])
@@ -116,6 +140,23 @@ cv::Mat FrameDrawer::DrawFrame()
                     mnTrackedVO++;
                 }
             }
+        }
+    }
+
+    else if(state==Tracking::LOST)
+    {
+        const float r = 5;
+        const int n = vCurrentKeys.size();
+        for(int i=0;i<n;i++)
+        {
+            cv::Point2f pt1,pt2;
+            pt1.x=vCurrentKeys[i].pt.x-r;
+            pt1.y=vCurrentKeys[i].pt.y-r;
+            pt2.x=vCurrentKeys[i].pt.x+r;
+            pt2.y=vCurrentKeys[i].pt.y+r;
+
+            cv::rectangle(im,pt1,pt2,cv::Scalar(0,0,255));
+            cv::circle(im,vCurrentKeys[i].pt,2,cv::Scalar(0,0,255),-1);
         }
     }
 
