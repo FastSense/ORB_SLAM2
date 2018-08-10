@@ -58,8 +58,20 @@ public:
              KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, cv::Mat &mInitialPoseEstimation_);
-    cv::Mat GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, cv::Mat &mInitialPoseEstimation_);
+    cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,
+                            const cv::Mat &imRectRight,
+                            const double &timestamp,
+                            cv::Mat &ConstantVelPoseEstimationOut_,
+                            const bool use_imu,
+                            cv::Mat &ImuPoseEstimationIn_);
+
+    cv::Mat GrabImageRGBD(const cv::Mat &imRGB,
+                          const cv::Mat &imD,
+                          const double &timestamp,
+                          cv::Mat &ConstantVelPoseEstimationOut_,
+                          const bool use_imu,
+                          cv::Mat &ImuPoseEstimationIn_);
+
     cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp);
 
     void SetLocalMapper(LocalMapping* pLocalMapper);
@@ -209,7 +221,10 @@ protected:
 
     //Motion Model
     cv::Mat mVelocity;
-    cv::Mat mInitialPoseEstimation;
+    cv::Mat ConstantVelPoseEstimation;
+
+    bool imu_init_pose = false;
+    cv::Mat ImuPoseEstimation;
 
     //Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;

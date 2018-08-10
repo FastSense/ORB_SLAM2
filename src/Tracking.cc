@@ -111,7 +111,8 @@ namespace ORB_SLAM2
         return cv::Vec3f(x, y, z);
     }
 
-Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor):
+Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap, KeyFrameDatabase* pKFDB,
+                   const string &strSettingPath, const int sensor):
     mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys), mpViewer(NULL),
     mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0)
@@ -214,6 +215,8 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
             mDepthMapFactor = 1.0f/mDepthMapFactor;
     }
 
+    ConstantVelPoseEstimation = cv::Mat::zeros(4, 4, CV_64F);
+
 }
 
 void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)
@@ -232,8 +235,17 @@ void Tracking::SetViewer(Viewer *pViewer)
 }
 
 
-cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
+cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft,
+                                  const cv::Mat &imRectRight,
+                                  const double &timestamp,
+                                  cv::Mat &ConstantVelPoseEstimationOut_,
+                                  const bool use_imu,
+                                  cv::Mat &ImuPoseEstimationIn_)
 {
+    imu_init_pose = use_imu;
+    if (imu_init_pose)
+        ImuPoseEstimationIn_.copyTo(ImuPoseEstimation);
+
     mImGray = imRectLeft;
     cv::Mat imGrayRight = imRectRight;
 
@@ -267,14 +279,23 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
     mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
-    mInitialPoseEstimation_ = mInitialPoseEstimation;
+    ConstantVelPoseEstimationOut_ = ConstantVelPoseEstimation;
 
     return mCurrentFrame.mTcw.clone();
 }
 
 
-cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, cv::Mat &mInitialPoseEstimation_)
+cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,
+                                const cv::Mat &imD,
+                                const double &timestamp,
+                                cv::Mat &ConstantVelPoseEstimationOut_,
+                                const bool use_imu,
+                                cv::Mat &ImuPoseEstimationIn_)
 {
+    imu_init_pose = use_imu;
+    if (imu_init_pose)
+        ImuPoseEstimationIn_.copyTo(ImuPoseEstimation);
+
     mImGray = imRGB;
     cv::Mat imDepth = imD;
 
@@ -299,7 +320,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
-    mInitialPoseEstimation_ = mInitialPoseEstimation;
+    ConstantVelPoseEstimationOut_ = ConstantVelPoseEstimation;
 
     return mCurrentFrame.mTcw.clone();
 }
@@ -976,9 +997,13 @@ bool Tracking::TrackWithMotionModel()
     //std::cout<<R<<std::endl;
 
 
-    mInitialPoseEstimation = mVelocity*mLastFrame.mTcw;
-    mCurrentFrame.SetPose(mVelocity*mLastFrame.mTcw);
+    ConstantVelPoseEstimation = mVelocity*mLastFrame.mTcw;
 
+    if (imu_init_pose) {
+        mCurrentFrame.SetPose(ImuPoseEstimation);
+    } else {
+        mCurrentFrame.SetPose(ConstantVelPoseEstimation);
+    }
 
     //mCurrentFrame.SetPose(mVelocity*(mCurrentFrame.mTimeStamp-mLastFrame.mTimeStamp)*mLastFrame.mTcw);
 
