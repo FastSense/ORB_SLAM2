@@ -86,6 +86,11 @@ add_executable(rgbd_tum
 Examples/RGB-D/rgbd_tum.cc)
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
 
+add_executable(rgbd_fastsense
+  Examples/RGB-D/rgbd_fastsense.cpp)
+target_link_libraries(rgbd_fastsense ${PROJECT_NAME})
+
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Stereo)
 
 add_executable(stereo_kitti
@@ -96,9 +101,7 @@ add_executable(stereo_euroc
 Examples/Stereo/stereo_euroc.cc)
 target_link_libraries(stereo_euroc ${PROJECT_NAME})
 
-add_executable(rgbd_fastsense
-  Examples/RGB-D/rgbd_fastsense.cpp)
-target_link_libraries(stereo_euroc ${PROJECT_NAME})
+
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular)
